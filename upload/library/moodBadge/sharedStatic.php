@@ -34,14 +34,17 @@ class moodBadge_sharedStatic
 		$dbc->query($q);
 	}
 	
-	public static function setMyMood(int $moodcode){
+	public static function setMyMood($moodcode){
+		$moodcode=intval($moodcode);
 		$visitor = XenForo_Visitor::getInstance();
 		$uid = $visitor['user_id'];
 		if(!is_int($uid)) $uid = 0;
 		return self::setMood($uid,$moodcode);
 	}
 
-	public static function setMood(int $uid, int $moodcode){
+	public static function setMood($uid, $moodcode){
+		$uid=intval($uid);
+		$moodcode=intval($moodcode);
 		$dbc=XenForo_Application::get('db');
 		$q='DELETE FROM `kiror_moodbadge_users` WHERE uid='.$uid.';';
 		$dbc->query($q);
@@ -56,18 +59,22 @@ class moodBadge_sharedStatic
 		return self::getMood($uid);
 	}
 	
-	public static function getMood(int $uid){
+	public static function getMood($uid){
+		$uid=intval($uid);
 		$dbc=XenForo_Application::get('db');
 		$q='SELECT mood FROM `kiror_moodbadge_users` WHERE uid='.$uid.' LIMIT 1;';
 		$mood=$dbc->fetchRow($q)['mood'];
 		if(is_int($mood) && array_key_exists($mood,(self::$moodbadge))){
-			return (self::$moodbadge)[$mood];
+			$m = self::$moodbadge;
+			return $m[$mood];
 		}else{
-			return (self::$moodbadge)[0];
+			$m=self::$moodbadge;
+			return $m[0];
 		}
 	}
 	
-	public static function hasMoodDefined(int $uid){
+	public static function hasMoodDefined($uid){
+		$uid=intval($uid);
 		$dbc=XenForo_Application::get('db');
 		$q='SELECT mood FROM `kiror_moodbadge_users` WHERE uid='.$uid.' LIMIT 1;';
 		$mood=$dbc->fetchRow($q)['mood'];
