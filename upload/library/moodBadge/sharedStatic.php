@@ -108,6 +108,26 @@ class moodBadge_sharedStatic
 		else return $params['pre'].strtolower(self::getMood(intval($params['uid']))[1]).$params['aft'];
 	}
 	
+	public static function renderMoodInThreadViewCallback($contents, array $params, XenForo_Template_Abstract $template){
+		if(!(self::hasMoodDefined(intval($params['uid'])))){
+			return '';
+		}
+		else{
+			$m = self::getMood(intval($params['uid']));
+			return '<dl class="pairsJustified" title="'.$m[1].'"><dt>Mood:</dt><dd>'.$m[0].'</dd></dl>';
+		}
+	}
+	
+	public static function renderMoodInProfileInfoCallback($contents, array $params, XenForo_Template_Abstract $template){
+		if(!(self::hasMoodDefined(intval($params['uid'])))){
+			return '';
+		}
+		else{
+			$m = self::getMood(intval($params['uid']));
+			return '<dl><dt>Mood:</dt><dd>'.$m[1].' - '.$m[0].'</dd></dl>';
+		}
+	}
+	
 	public static function getMoodOptions(){
 		return self::$moodbadge;
 	}

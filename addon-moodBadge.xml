@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="moodBadge" title="Mood Badge by kiror" version_string="0.0" version_id="0" url="https://github.com/adlerosn/" install_callback_class="moodBadge_setup" install_callback_method="install" uninstall_callback_class="moodBadge_setup" uninstall_callback_method="uninstall">
+<addon addon_id="moodBadge" title="Mood Badge by kiror" version_string="0.1" version_id="1" url="https://github.com/adlerosn/" install_callback_class="moodBadge_setup" install_callback_method="install" uninstall_callback_class="moodBadge_setup" uninstall_callback_method="uninstall">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -50,25 +50,24 @@
 }]]></template>
   </templates>
   <public_template_modifications>
-    <modification template="navigation_visitor_tab" modification_key="insertcurrentmoodaccountmenu" description="Inserts current mood in account menu" execution_order="10" enabled="1" action="str_replace">
+    <modification template="navigation_visitor_tab" modification_key="insertcurrentmoodaccountmenu" description="Inserts current mood in account menu" execution_order="1000" enabled="1" action="str_replace">
       <find><![CDATA[<xen:if hascontent="true"><div class="muted"><xen:contentcheck>{xen:helper usertitle, $visitor}</xen:contentcheck></div></xen:if>]]></find>
       <replace><![CDATA[<xen:if hascontent="true"><div class="muted"><xen:contentcheck>{xen:helper usertitle, $visitor}</xen:contentcheck></div></xen:if>
 
 <xen:callback class="moodBadge_sharedStatic" method="getMoodTitleLowerIfDefinedCallback" params="{xen:array 'uid={$visitor.user_id}','aft=</i></div>','pre=<div class="muted">Feeling <i>'}"></xen:callback>]]></replace>
     </modification>
-    <modification template="footer" modification_key="insertcurrentmoodfooterlink" description="Inserts current mood changer link in footer" execution_order="10" enabled="1" action="str_replace">
-      <find><![CDATA[<xen:if is="{$canChangeLanguage}">
-					<dt>{xen:phrase language}</dt>
-					<dd><a href="{xen:link 'misc/language', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger Tooltip" title="{xen:phrase language_chooser}" rel="nofollow">{$visitorLanguage.title}</a></dd>
-				</xen:if>]]></find>
-      <replace><![CDATA[<xen:if is="{$canChangeLanguage}">
-					<dt>{xen:phrase language}</dt>
-					<dd><a href="{xen:link 'misc/language', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger Tooltip" title="{xen:phrase language_chooser}" rel="nofollow">{$visitorLanguage.title}</a></dd>
-				</xen:if>
-<xen:if is="{$visitor.user_id}">
-<dt>Mood</dt>
-<dd><a href="{xen:link 'moodchanging', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger Tooltip" title="Mood changer" rel="nofollow">Mood</a></dd>
-</xen:if>]]></replace>
+    <modification template="member_view" modification_key="insertcurrentmoodininfosectionmemberview" description="Inserts current mood in &quot;Information&quot; section of member view, below custom fields" execution_order="10" enabled="1" action="str_replace">
+      <find><![CDATA[<xen:if is="{$customFieldsGrouped.personal}">
+											<xen:foreach loop="$customFieldsGrouped.personal" value="$field">
+												<xen:include template="custom_field_view" />
+											</xen:foreach>
+										</xen:if>]]></find>
+      <replace><![CDATA[<xen:if is="{$customFieldsGrouped.personal}">
+											<xen:foreach loop="$customFieldsGrouped.personal" value="$field">
+												<xen:include template="custom_field_view" />
+											</xen:foreach>
+										</xen:if>
+<xen:callback class="moodBadge_sharedStatic" method="renderMoodInProfileInfoCallback" params="{xen:array 'uid={$user.user_id}'}"></xen:callback>]]></replace>
     </modification>
     <modification template="member_card" modification_key="insertcurrentmoodmembercard" description="Inserts current mood in member card" execution_order="10" enabled="1" action="str_replace">
       <find><![CDATA[</xen:if>
@@ -91,17 +90,31 @@
 			<ul class="tabs mainTabs Tabs" data-panes="#ProfilePanes > li" data-history="on">]]></replace>
     </modification>
     <modification template="message_user_info" modification_key="insertcurrentmoodthreadreply" description="Inserts current mood in sidebar from thread reply" execution_order="10" enabled="1" action="str_replace">
-      <find><![CDATA[<!-- slot: message_user_info_text -->]]></find>
-      <replace><![CDATA[<dl class="pairsJustified" title="<xen:callback class="moodBadge_sharedStatic" method="getMoodTitleCallback" params="{xen:array 'uid={$user.user_id}'}"></xen:callback>">
-	<dt>Mood:</dt>
-	<dd><xen:callback class="moodBadge_sharedStatic" method="getMoodCharCallback" params="{xen:array 'uid={$user.user_id}'}"></xen:callback></dd>
-</dl>
-<!-- slot: message_user_info_text -->]]></replace>
+      <find><![CDATA[<dd><a href="{xen:string censor, $user.homepage, '-'}" rel="nofollow" target="_blank" itemprop="url">{xen:string censor, $user.homepage}</a></dd>
+					</dl>
+				</xen:if>
+							
+			</xen:hook>]]></find>
+      <replace><![CDATA[<dd><a href="{xen:string censor, $user.homepage, '-'}" rel="nofollow" target="_blank" itemprop="url">{xen:string censor, $user.homepage}</a></dd>
+					</dl>
+				</xen:if>
+							
+			</xen:hook>			
+
+<xen:if is="{$user.user_id}=={$visitor.user_id}">
+<a href="{xen:link 'moodchanging', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger Tooltip" title="Mood changer" rel="nofollow">
+</xen:if>
+
+<xen:callback class="moodBadge_sharedStatic" method="renderMoodInThreadViewCallback" params="{xen:array 'uid={$user.user_id}'}"></xen:callback>
+
+<xen:if is="{$user.user_id}=={$visitor.user_id}">
+</a>
+</xen:if>]]></replace>
     </modification>
     <modification template="navigation_visitor_tab" modification_key="insertmoodchanginglinkinaccountmenu" description="Inserts mood changing link in account menu" execution_order="10" enabled="1" action="str_replace">
       <find><![CDATA[<xen:if is="{$canEditProfile}"><li><a href="{xen:link account/personal-details}">{xen:phrase personal_details}</a></li></xen:if>]]></find>
       <replace><![CDATA[<xen:if is="{$canEditProfile}"><li><a href="{xen:link account/personal-details}">{xen:phrase personal_details}</a></li></xen:if>
-<li><a href="{xen:link 'moodchanging', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger Tooltip" rel="nofollow">Mood displayed</a></li>]]></replace>
+<li><a href="{xen:link 'moodchanging', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger" rel="nofollow">Mood displayed</a></li>]]></replace>
     </modification>
   </public_template_modifications>
   <bb_code_media_sites/>
