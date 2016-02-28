@@ -61,6 +61,12 @@ class moodBadge_sharedStatic
 	
 	public static function getMood($uid){
 		$uid=intval($uid);
+		$user = XenForo_Visitor::setup($uid);
+		$permissions = $user->getPermissions();
+		if (!XenForo_Permission::hasPermission($permissions,'forum','moodbadgeset')){
+			$m=self::$moodbadge;
+			return $m[0];
+		}
 		$dbc=XenForo_Application::get('db');
 		$q='SELECT mood FROM `kiror_moodbadge_users` WHERE uid='.$uid.' LIMIT 1;';
 		$mood=$dbc->fetchRow($q)['mood'];
@@ -75,6 +81,11 @@ class moodBadge_sharedStatic
 	
 	public static function hasMoodDefined($uid){
 		$uid=intval($uid);
+		$user = XenForo_Visitor::setup($uid);
+		$permissions = $user->getPermissions();
+		if (!XenForo_Permission::hasPermission($permissions,'forum','moodbadgeset')){
+			return false;
+		}
 		$dbc=XenForo_Application::get('db');
 		$q='SELECT mood FROM `kiror_moodbadge_users` WHERE uid='.$uid.' LIMIT 1;';
 		$mood=$dbc->fetchRow($q)['mood'];

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="moodBadge" title="Mood Badge by kiror" version_string="0.1" version_id="1" url="https://github.com/adlerosn/" install_callback_class="moodBadge_setup" install_callback_method="install" uninstall_callback_class="moodBadge_setup" uninstall_callback_method="uninstall">
+<addon addon_id="moodBadge" title="Mood Badge by kiror" version_string="0.2" version_id="2" url="https://github.com/adlerosn/" install_callback_class="moodBadge_setup" install_callback_method="install" uninstall_callback_class="moodBadge_setup" uninstall_callback_method="uninstall">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -10,13 +10,32 @@
   <cron/>
   <email_templates/>
   <email_template_modifications/>
-  <optiongroups/>
+  <optiongroups>
+    <group group_id="moodbadgeoptgrp" display_order="1" debug_only="0"/>
+    <option option_id="moodBadgeMessageDenied" edit_format="textbox" data_type="string" can_backup="1">
+      <default_value>Sorry, your user group can't do this right now.</default_value>
+      <edit_format_params></edit_format_params>
+      <sub_options></sub_options>
+      <relation group_id="moodbadgeoptgrp" display_order="1"/>
+    </option>
+  </optiongroups>
   <permissions>
     <permission_groups/>
-    <permissions/>
-    <interface_groups/>
+    <permissions>
+      <permission permission_group_id="forum" permission_id="moodbadgeset" permission_type="flag" default_value="unset" interface_group_id="moodbadgegroup" display_order="1"/>
+    </permissions>
+    <interface_groups>
+      <interface_group interface_group_id="moodbadgegroup" display_order="120"/>
+    </interface_groups>
   </permissions>
-  <phrases/>
+  <phrases>
+    <phrase title="option_group_moodbadgeoptgrp" version_id="1" version_string="0.1"><![CDATA[Mood Badge Option]]></phrase>
+    <phrase title="option_group_moodbadgeoptgrp_description" version_id="1" version_string="0.1"><![CDATA[]]></phrase>
+    <phrase title="option_moodBadgeMessageDenied" version_id="1" version_string="0.1"><![CDATA[Not allowed message]]></phrase>
+    <phrase title="option_moodBadgeMessageDenied_explain" version_id="1" version_string="0.1"><![CDATA[<i>You may use HTML</i>]]></phrase>
+    <phrase title="permission_forum_moodbadgeset" version_id="1" version_string="0.1"><![CDATA[Can set mood badge]]></phrase>
+    <phrase title="permission_interface_moodbadgegroup" version_id="1" version_string="0.1"><![CDATA[Mood Badge group]]></phrase>
+  </phrases>
   <route_prefixes>
     <route_type type="public">
       <prefix original_prefix="moodchanging" class="moodBadge_routeinterface" build_link="none"/>
@@ -24,7 +43,7 @@
   </route_prefixes>
   <style_properties/>
   <templates>
-    <template title="kiror_floating_mood_changer" version_id="0" version_string="0.0"><![CDATA[<xen:title>Mood changer</xen:title>
+    <template title="kiror_floating_mood_changer" version_id="2" version_string="0.2"><![CDATA[<xen:title>Mood changer</xen:title>
 
 <xen:container var="$head.metaNoindex"><meta name="robots" content="noindex" /></xen:container>
 
@@ -32,18 +51,31 @@
 <xen:require css="chooser_overlay.css" />
 <xen:require css="style_chooser.css" />
 
-<div class="section styleChooser" data-overlayClass="chooserOverlay">
-
-	<h3 class="subHeading">Select your mood to be displayed on the site</h3>
+<xen:if is="{$visitor.permissions.forum.moodbadgeset}">
+	<div class="section styleChooser" data-overlayClass="chooserOverlay">
 	
-	<ol class="primaryContent chooserColumns twoColumns overlayScroll">
+		<h3 class="subHeading">Select your mood to be displayed on the site</h3>
+		
+		<ol class="primaryContent chooserColumns twoColumns overlayScroll">
+		
+			{xen:raw $html}
 	
-		{xen:raw $html}
-
-	</ol>
-
-	<div class="sectionFooter overlayOnly"><a class="button primary OverlayCloser">{xen:phrase cancel}</a></div>
-</div>]]></template>
+		</ol>
+	
+		<div class="sectionFooter overlayOnly"><a class="button primary OverlayCloser">{xen:phrase cancel}</a></div>
+	</div>
+<xen:else />
+	<div class="section styleChooser" data-overlayClass="chooserOverlay">
+	
+		<h3 class="subHeading">Access denied</h3>
+		
+		<div style="background: {xen:property textCtrlBackground} ; width: 100%;">
+		{xen:raw $xenOptions.moodBadgeMessageDenied}
+		</div>
+		
+		<div class="sectionFooter overlayOnly"><a class="button primary OverlayCloser">{xen:phrase cancel}</a></div>
+	</div>
+</xen:if>]]></template>
     <template title="kiror_floating_mood_changer.css" version_id="0" version_string="0.0"><![CDATA[.changerSelected{
 	background-color: {xen:property secondaryLightest};
 	text-decoration: none;
@@ -89,19 +121,15 @@
 			
 			<ul class="tabs mainTabs Tabs" data-panes="#ProfilePanes > li" data-history="on">]]></replace>
     </modification>
-    <modification template="message_user_info" modification_key="insertcurrentmoodthreadreply" description="Inserts current mood in sidebar from thread reply" execution_order="10" enabled="1" action="str_replace">
-      <find><![CDATA[<dd><a href="{xen:string censor, $user.homepage, '-'}" rel="nofollow" target="_blank" itemprop="url">{xen:string censor, $user.homepage}</a></dd>
-					</dl>
-				</xen:if>
-							
-			</xen:hook>]]></find>
-      <replace><![CDATA[<dd><a href="{xen:string censor, $user.homepage, '-'}" rel="nofollow" target="_blank" itemprop="url">{xen:string censor, $user.homepage}</a></dd>
-					</dl>
-				</xen:if>
-							
-			</xen:hook>			
-
-<xen:if is="{$user.user_id}=={$visitor.user_id}">
+    <modification template="message_user_info" modification_key="insertcurrentmoodthreadreply" description="Inserts current mood in sidebar from thread reply" execution_order="5000" enabled="1" action="str_replace">
+      <find><![CDATA[</xen:hook>
+			</xen:if>
+			</xen:contentcheck>
+		</div>
+	</xen:if>
+		
+</xen:if>]]></find>
+      <replace><![CDATA[<xen:if is="{$user.user_id}=={$visitor.user_id}">
 <a href="{xen:link 'moodchanging', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger Tooltip" title="Mood changer" rel="nofollow">
 </xen:if>
 
@@ -109,12 +137,21 @@
 
 <xen:if is="{$user.user_id}=={$visitor.user_id}">
 </a>
+</xen:if>
+
+
+			</xen:hook>
+			</xen:if>
+			</xen:contentcheck>
+		</div>
+	</xen:if>
+		
 </xen:if>]]></replace>
     </modification>
     <modification template="navigation_visitor_tab" modification_key="insertmoodchanginglinkinaccountmenu" description="Inserts mood changing link in account menu" execution_order="10" enabled="1" action="str_replace">
       <find><![CDATA[<xen:if is="{$canEditProfile}"><li><a href="{xen:link account/personal-details}">{xen:phrase personal_details}</a></li></xen:if>]]></find>
       <replace><![CDATA[<xen:if is="{$canEditProfile}"><li><a href="{xen:link account/personal-details}">{xen:phrase personal_details}</a></li></xen:if>
-<li><a href="{xen:link 'moodchanging', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger" rel="nofollow">Mood displayed</a></li>]]></replace>
+<li><a href="{xen:link 'moodchanging', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger" rel="nofollow">Mood</a></li>]]></replace>
     </modification>
   </public_template_modifications>
   <bb_code_media_sites/>
