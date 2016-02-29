@@ -143,15 +143,19 @@ class moodBadge_sharedStatic
 		$uid = intval($uid);
 		$userModel = XenForo_Model::create('XenForo_Model_User');
 		$user = $userModel->getUserById($uid);
-		$pci = $user['permission_combination_id'];
-		$gpc = $user['global_permission_cache'];
+		$pci = array_key_exists('permission_combination_id',$user) ? $user['permission_combination_id'] : null;
+		$gpc = array_key_exists('global_permission_cache',$user) ? $user['global_permission_cache'] : null;
 		$permarr = array();
 		if (!$gpc){
 			$permarr = XenForo_Model::create('XenForo_Model_Permission')->rebuildPermissionCombinationById($pci);
 			if(!$permarr){$permarr = array();};
 		}else{
-			$permarr = XenForo_Permission::unserializePermissions($gpc);
-			if(!$permarr){$permarr = array();};
+			if($gpc){
+				$permarr = XenForo_Permission::unserializePermissions($gpc);
+				if(!$permarr){$permarr = array();};
+			}else{
+				$permarr = array();
+			}
 		}
 		return $permarr;
 	}
