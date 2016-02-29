@@ -61,9 +61,7 @@ class moodBadge_sharedStatic
 	
 	public static function getMood($uid){
 		$uid=intval($uid);
-		$user = XenForo_Visitor::setup($uid);
-		$permissions = $user->getPermissions();
-		if (!XenForo_Permission::hasPermission($permissions,'forum','moodbadgeset')){
+		if (!self::userHasPermission($uid,'forum','moodbadgeset')){
 			$m=self::$moodbadge;
 			return $m[0];
 		}
@@ -81,9 +79,7 @@ class moodBadge_sharedStatic
 	
 	public static function hasMoodDefined($uid){
 		$uid=intval($uid);
-		$user = XenForo_Visitor::setup($uid);
-		$permissions = $user->getPermissions();
-		if (!XenForo_Permission::hasPermission($permissions,'forum','moodbadgeset')){
+		if (!self::userHasPermission($uid,'forum','moodbadgeset')){
 			return false;
 		}
 		$dbc=XenForo_Application::get('db');
@@ -141,5 +137,27 @@ class moodBadge_sharedStatic
 	
 	public static function getMoodOptions(){
 		return self::$moodbadge;
+	}
+	
+	public static function getUserPermissions($uid){
+		$uid = intval($uid);
+		$userModel = XenForo_Model::create('XenForo_Model_User');
+		$user = $userModel->getUserById($uid);
+		$pci = $user['permission_combination_id'];
+		$gpc = $user['global_permission_cache'];
+		$permarr = array();
+		if (!$gpc){
+			$permarr = XenForo_Model::create('XenForo_Model_Permission')->rebuildPermissionCombinationById($pci);
+			if(!$permarr){$permarr = array();};
+		}else{
+			$permarr = XenForo_Permission::unserializePermissions($gpc);
+			if(!$permarr){$permarr = array();};
+		}
+		return $permarr;
+	}
+	
+	public static function userHasPermission($uid,$permGroupId,$permId){
+		$permissions = self::getUserPermissions($uid);
+		return XenForo_Permission::hasPermission($permissions,'forum','moodbadgeset');
 	}
 }

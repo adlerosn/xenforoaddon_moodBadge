@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="moodBadge" title="Mood Badge by kiror" version_string="0.2" version_id="2" url="https://github.com/adlerosn/" install_callback_class="moodBadge_setup" install_callback_method="install" uninstall_callback_class="moodBadge_setup" uninstall_callback_method="uninstall">
+<addon addon_id="moodBadge" title="Mood Badge by kiror" version_string="0.3" version_id="3" url="https://github.com/adlerosn/" install_callback_class="moodBadge_setup" install_callback_method="install" uninstall_callback_class="moodBadge_setup" uninstall_callback_method="uninstall">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -129,16 +129,7 @@
 	</xen:if>
 		
 </xen:if>]]></find>
-      <replace><![CDATA[<xen:if is="{$user.user_id}=={$visitor.user_id}">
-<a href="{xen:link 'moodchanging', '', 'redirect={$requestPaths.requestUri}'}" class="OverlayTrigger Tooltip" title="Mood changer" rel="nofollow">
-</xen:if>
-
-<xen:callback class="moodBadge_sharedStatic" method="renderMoodInThreadViewCallback" params="{xen:array 'uid={$user.user_id}'}"></xen:callback>
-
-<xen:if is="{$user.user_id}=={$visitor.user_id}">
-</a>
-</xen:if>
-
+      <replace><![CDATA[<xen:callback class="moodBadge_sharedStatic" method="renderMoodInThreadViewCallback" params="{xen:array 'uid={$user.user_id}'}"></xen:callback>
 
 			</xen:hook>
 			</xen:if>
