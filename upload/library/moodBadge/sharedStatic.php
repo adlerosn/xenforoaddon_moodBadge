@@ -16,8 +16,67 @@ class moodBadge_sharedStatic
 		10=>array('😢','Crying'),
 		11=>array('😞','Sad'),
 		12=>array('😠','Angry'),
-		13=>array('😴','Sleepy')
+		13=>array('😴','Sleepy'),
+		14=>array('😔','Bored'),
+		15=>array('😷','Sick')
 		);
+	
+	public static function getMoodOptions(){
+		$bdgs = self::$moodbadge;
+		$xfopt = XenForo_Application::get('options');
+		$extra = $xfopt->moodBadgeExtras;
+		foreach($extra as $itm){
+			$bdgs[]=$itm;
+		}
+		return $bdgs;
+	}
+	
+	public static function render_AdminCP_CustomFieldsAdder(XenForo_View $view, $fieldPrefix, array $preparedOption, $canEdit){
+		$t = $preparedOption['option_value'];
+		
+		$choices = array();
+		foreach($t as $entry){
+			$choices[] = array(
+				is_string($entry[0]) ? $entry[0] : '',
+				is_string($entry[1]) ? $entry[1] : ''
+			);
+		}
+
+		$editLink = $view->createTemplateObject('option_list_option_editlink', array(
+			'preparedOption' => $preparedOption,
+			'canEditOptionDefinition' => $canEdit
+		));
+
+		return $view->createTemplateObject('kiror_option_template_custom_badge_adder', array(
+			'fieldPrefix' => $fieldPrefix,
+			'listedFieldName' => $fieldPrefix . '_listed[]',
+			'preparedOption' => $preparedOption,
+			'formatParams' => $preparedOption['formatParams'],
+			'editLink' => $editLink,
+
+			'choices' => $choices,
+			'nextCounter' => count($choices)
+		));
+	}
+	
+	public static function verifier_AdminCP_CustomFieldsAdder(array &$emojis, XenForo_DataWriter $dw, $fieldName){
+		$output = array();
+
+		foreach ($emojis AS $candidate){
+			if (!isset($candidate[0]) || !isset($candidate[1]) || strlen($candidate[0])<=0 || strlen($candidate[1])<=0){
+				continue;
+			}
+
+			$tmp = array($candidate[0], $candidate[1]);
+			if ($tmp && !in_array($tmp,$output)){
+				$output[] = $tmp;
+			}
+		}
+
+		$emojis = $output;
+
+		return true;
+	}
 	
 	public static function createTableDB(){
 		$dbc=XenForo_Application::get('db');
@@ -62,17 +121,17 @@ class moodBadge_sharedStatic
 	public static function getMood($uid){
 		$uid=intval($uid);
 		if (!self::userHasPermission($uid,'forum','moodbadgeset')){
-			$m=self::$moodbadge;
+			$m=self::getMoodOptions();
 			return $m[0];
 		}
 		$dbc=XenForo_Application::get('db');
 		$q='SELECT mood FROM `kiror_moodbadge_users` WHERE uid='.$uid.' LIMIT 1;';
 		$mood=$dbc->fetchRow($q)['mood'];
-		if(is_int($mood) && array_key_exists($mood,(self::$moodbadge))){
-			$m = self::$moodbadge;
+		if(is_int($mood) && array_key_exists($mood,(self::getMoodOptions()))){
+			$m = self::getMoodOptions();
 			return $m[$mood];
 		}else{
-			$m=self::$moodbadge;
+			$m=self::getMoodOptions();
 			return $m[0];
 		}
 	}
@@ -85,7 +144,7 @@ class moodBadge_sharedStatic
 		$dbc=XenForo_Application::get('db');
 		$q='SELECT mood FROM `kiror_moodbadge_users` WHERE uid='.$uid.' LIMIT 1;';
 		$mood=$dbc->fetchRow($q)['mood'];
-		if(is_int($mood) && array_key_exists($mood,(self::$moodbadge))){
+		if(is_int($mood) && array_key_exists($mood,(self::getMoodOptions()))){
 			return ($mood != 0);
 		}else{
 			return false;
@@ -133,10 +192,6 @@ class moodBadge_sharedStatic
 			$m = self::getMood(intval($params['uid']));
 			return '<dl><dt>Mood:</dt><dd>'.$m[1].' - '.$m[0].'</dd></dl>';
 		}
-	}
-	
-	public static function getMoodOptions(){
-		return self::$moodbadge;
 	}
 	
 	public static function getUserPermissions($uid){

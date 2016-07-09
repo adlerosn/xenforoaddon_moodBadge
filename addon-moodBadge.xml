@@ -1,9 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="moodBadge" title="Mood Badge by kiror" version_string="0.3" version_id="3" url="https://github.com/adlerosn/" install_callback_class="moodBadge_setup" install_callback_method="install" uninstall_callback_class="moodBadge_setup" uninstall_callback_method="uninstall">
+<addon addon_id="moodBadge" title="[kiror] Mood Badge" version_string="0.5" version_id="5" url="https://github.com/adlerosn/" install_callback_class="moodBadge_setup" install_callback_method="install" uninstall_callback_class="moodBadge_setup" uninstall_callback_method="uninstall">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
-  <admin_templates/>
+  <admin_templates>
+    <template title="kiror_option_template_custom_badge_adder"><![CDATA[<xen:require js="js/xenforo/options_censor.js" />
+
+<xen:controlunit label="{$preparedOption.title}" hint="{$preparedOption.hint}">
+	<xen:explain>{xen:raw $preparedOption.explain}</xen:explain>
+	<xen:html>
+		<ul>
+			<xen:foreach loop="$choices" key="$counter" value="$choice">
+			<li>
+				<xen:textbox name="{$fieldPrefix}[{$preparedOption.option_id}][{$counter}][0]" value="{$choice.0}" placeholder="Emoji character" size="20" />
+				<xen:textbox name="{$fieldPrefix}[{$preparedOption.option_id}][{$counter}][1]" value="{$choice.1}" placeholder="Text description" size="20" />
+			</li>
+			</xen:foreach>
+		
+			<li class="CensorWordOptionListener">
+				<xen:textbox name="{$fieldPrefix}[{$preparedOption.option_id}][{$nextCounter}][0]" value="" placeholder="Emoji character" size="20" />
+				<xen:textbox name="{$fieldPrefix}[{$preparedOption.option_id}][{$nextCounter}][1]" value="" placeholder="Text description" size="20" />
+			</li>
+		</ul>
+		
+		<input type="hidden" name="{$listedFieldName}" value="{$preparedOption.option_id}" />
+		{xen:raw $editLink}
+	</xen:html>
+</xen:controlunit>]]></template>
+  </admin_templates>
   <admin_template_modifications/>
   <code_events/>
   <code_event_listeners/>
@@ -11,7 +35,13 @@
   <email_templates/>
   <email_template_modifications/>
   <optiongroups>
-    <group group_id="moodbadgeoptgrp" display_order="1" debug_only="0"/>
+    <group group_id="moodbadgeoptgrp" display_order="7" debug_only="0"/>
+    <option option_id="moodBadgeExtras" edit_format="callback" data_type="array" can_backup="1" validation_class="moodBadge_sharedStatic" validation_method="verifier_AdminCP_CustomFieldsAdder">
+      <default_value>a:0:{}</default_value>
+      <edit_format_params>moodBadge_sharedStatic::render_AdminCP_CustomFieldsAdder</edit_format_params>
+      <sub_options>*</sub_options>
+      <relation group_id="moodbadgeoptgrp" display_order="2"/>
+    </option>
     <option option_id="moodBadgeMessageDenied" edit_format="textbox" data_type="string" can_backup="1">
       <default_value>Sorry, your user group can't do this right now.</default_value>
       <edit_format_params></edit_format_params>
@@ -29,8 +59,10 @@
     </interface_groups>
   </permissions>
   <phrases>
-    <phrase title="option_group_moodbadgeoptgrp" version_id="1" version_string="0.1"><![CDATA[Mood Badge Option]]></phrase>
-    <phrase title="option_group_moodbadgeoptgrp_description" version_id="1" version_string="0.1"><![CDATA[]]></phrase>
+    <phrase title="option_group_moodbadgeoptgrp" version_id="5" version_string="0.5"><![CDATA[[kiror] Mood Badge Option]]></phrase>
+    <phrase title="option_group_moodbadgeoptgrp_description" version_id="5" version_string="0.5"><![CDATA[Options for mood badge]]></phrase>
+    <phrase title="option_moodBadgeExtras" version_id="3" version_string="0.3"><![CDATA[Extra Mood Badges]]></phrase>
+    <phrase title="option_moodBadgeExtras_explain" version_id="3" version_string="0.3"><![CDATA[]]></phrase>
     <phrase title="option_moodBadgeMessageDenied" version_id="1" version_string="0.1"><![CDATA[Not allowed message]]></phrase>
     <phrase title="option_moodBadgeMessageDenied_explain" version_id="1" version_string="0.1"><![CDATA[<i>You may use HTML</i>]]></phrase>
     <phrase title="permission_forum_moodbadgeset" version_id="1" version_string="0.1"><![CDATA[Can set mood badge]]></phrase>

@@ -15,7 +15,7 @@ class moodBadge_routecontroller extends XenForo_ControllerPublic_Abstract{
 		}
 		$redirect = $this->_input->filterSingle('redirect',XenForo_Input::STRING);
 		if (!$this->_input->inRequest('mood_id')){
-			$mbs=moodBadge_sharedStatic::$moodbadge;
+			$mbs=moodBadge_sharedStatic::getMoodOptions();
 			$mymood=moodBadge_sharedStatic::getMyMood();
 			$_xfToken=$visitor['csrf_token_page'];
 			$viewParams['html']='';
