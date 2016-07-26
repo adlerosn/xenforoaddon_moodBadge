@@ -26,8 +26,19 @@ class moodBadge_sharedStatic
 		$xfopt = XenForo_Application::get('options');
 		$extra = $xfopt->moodBadgeExtras;
 		foreach($extra as $itm){
-			$bdgs[]=$itm;
+			$replaced = false;
+			foreach($bdgs as $badgeindex => $badgearr){
+				if($badgearr[1]==$itm[1]){
+					$replaced = true;
+					$bdgs[$badgeindex][0]=$itm[0];
+					break;
+				}
+			}
+			if(!$replaced){
+				$bdgs[]=$itm;
+			}
 		}
+		//die(print_r($bdgs,true));
 		return $bdgs;
 	}
 	
