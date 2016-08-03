@@ -40,7 +40,8 @@ class moodBadge_Permission extends XenForo_Model {
 		if(!array_key_exists($uid,$this->userPermissionsCache)){
 			$permissions = array();
 			$reply = $this->queryUserGroup($uid);
-			if(array_key_exists('permission_combination_id',$reply) &&
+			if(is_array($reply) &&
+			   array_key_exists('permission_combination_id',$reply) &&
 			   array_key_exists('cache_value',$reply)){
 				$combId = $reply['permission_combination_id'];
 				$permissions = XenForo_Permission::unserializePermissions($reply['cache_value']);
