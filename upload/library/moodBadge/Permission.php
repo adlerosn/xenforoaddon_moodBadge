@@ -1,5 +1,5 @@
 <?php
-class moodBadge_Permission {
+class moodBadge_Permission extends XenForo_Model {
 	public static function debug($e){die(print_r($e,true));}
 	public static $_instance = null;
 	public $_permModel = null;
@@ -26,27 +26,27 @@ class moodBadge_Permission {
 		}
 		return $this->_permissionCombinationId[$pcu];
 	}
-	public function getPermissionCombinationByUserId($pcu){
-		$pcu = intval($pcu);
-		if(!array_key_exists($pcu,$this->_permissionCombinationByUserId)){
-			$this->_permissionCombinationByUserId[$pcu] = $this->getPermModel()->getPermissionCombinationByUserId($pcu);
-		}
-		return $this->_permissionCombinationByUserId[$pcu];
-	}
-	public function getUserPermissionsUncached($uid){
+	public function queryUserGroup($uid){
 		$uid = intval($uid);
-		$permarr = $this->getPermissionCombinationByUserId($uid);
-		if(!$permarr) $permarr = array();
-		return $permarr;
+		$q = 'SELECT `xf_permission_combination`.*
+				FROM `xf_user`
+				INNER JOIN `xf_permission_combination`
+					ON (`xf_user`.`permission_combination_id` = `xf_permission_combination`.`permission_combination_id`)
+				WHERE `xf_user`.`user_id` = ? ;';
+		return $this->_getDb()->fetchRow($q,$uid);
 	}
 	public function getUserPermissions($uid){
 		$uid = intval($uid);
 		if(!array_key_exists($uid,$this->userPermissionsCache)){
-			$reply = $this->getUserPermissionsUncached($uid);
-			$combId = $reply['permission_combination_id'];
-			$permissions = XenForo_Permission::unserializePermissions($reply['cache_value']);
-			if(true||count($permissions)==0){ // if cache empty
-				$permissions = XenForo_Permission::unserializePermissions($this->getPermissionCombinationById($combId)['cache_value']);
+			$permissions = array();
+			$reply = $this->queryUserGroup($uid);
+			if(array_key_exists('permission_combination_id',$reply) &&
+			   array_key_exists('cache_value',$reply)){
+				$combId = $reply['permission_combination_id'];
+				$permissions = XenForo_Permission::unserializePermissions($reply['cache_value']);
+				if(count($permissions)==0){ // if cache empty
+					$permissions = array(); // then get from anoher source? That would take a long time to finish.
+				}
 			}
 			$this->userPermissionsCache[$uid] = $permissions;
 		}
@@ -71,4 +71,3 @@ class moodBadge_Permission {
 		return $permission;
 	}
 }
-	
