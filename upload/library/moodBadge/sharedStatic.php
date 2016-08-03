@@ -21,22 +21,29 @@ class moodBadge_sharedStatic
 		15=>array('😷','Sick')
 		);
 	
+	public static $moodOptions = null;
 	public static function getMoodOptions(){
-		$bdgs = self::$moodbadge;
-		$xfopt = XenForo_Application::get('options');
-		$extra = $xfopt->moodBadgeExtras;
-		foreach($extra as $itm){
-			$replaced = false;
-			foreach($bdgs as $badgeindex => $badgearr){
-				if($badgearr[1]==$itm[1]){
-					$replaced = true;
-					$bdgs[$badgeindex][0]=$itm[0];
-					break;
+		$bdgs = null;
+		if(self::$moodOptions){
+			$bdgs = self::$moodOptions;
+		}else{
+			$bdgs = self::$moodbadge;
+			$xfopt = XenForo_Application::get('options');
+			$extra = $xfopt->moodBadgeExtras;
+			foreach($extra as $itm){
+				$replaced = false;
+				foreach($bdgs as $badgeindex => $badgearr){
+					if($badgearr[1]==$itm[1]){
+						$replaced = true;
+						$bdgs[$badgeindex][0]=$itm[0];
+						break;
+					}
+				}
+				if(!$replaced){
+					$bdgs[]=$itm;
 				}
 			}
-			if(!$replaced){
-				$bdgs[]=$itm;
-			}
+			$moodOptions = $bdgs;
 		}
 		//die(print_r($bdgs,true));
 		return $bdgs;
@@ -107,8 +114,7 @@ class moodBadge_sharedStatic
 	public static function setMyMood($moodcode){
 		$moodcode=intval($moodcode);
 		$visitor = XenForo_Visitor::getInstance();
-		$uid = $visitor['user_id'];
-		if(!is_int($uid)) $uid = 0;
+		$uid = intval($visitor['user_id']);
 		return self::setMood($uid,$moodcode);
 	}
 
@@ -116,50 +122,57 @@ class moodBadge_sharedStatic
 		$uid=intval($uid);
 		$moodcode=intval($moodcode);
 		$dbc=XenForo_Application::get('db');
-		$q='DELETE FROM `kiror_moodbadge_users` WHERE uid='.$uid.';';
-		$dbc->query($q);
-		$q='INSERT INTO `kiror_moodbadge_users` (uid,mood) VALUES ('.$uid.','.$moodcode.');';
-		$dbc->query($q);
+		$q='DELETE FROM `kiror_moodbadge_users` WHERE uid = ? ;';
+		$dbc->query($q,$uid);
+		$q='INSERT INTO `kiror_moodbadge_users` (uid,mood) VALUES (?,?);';
+		$dbc->query($q,array($uid,$moodcode));
 	}
 	
 	public static function getMyMood(){
 		$visitor = XenForo_Visitor::getInstance();
-		$uid = $visitor['user_id'];
-		if(!is_int($uid)) $uid = 0;
+		$uid = intval($visitor['user_id']);
 		return self::getMood($uid);
 	}
 	
-	public static function getMood($uid){
+	public static function getMoodId_uncached($uid){
 		$uid=intval($uid);
 		if (!self::userHasPermission($uid,'forum','moodbadgeset')){
-			$m=self::getMoodOptions();
-			return $m[0];
+			return 0;
 		}
 		$dbc=XenForo_Application::get('db');
-		$q='SELECT mood FROM `kiror_moodbadge_users` WHERE uid='.$uid.' LIMIT 1;';
-		$mood=$dbc->fetchRow($q)['mood'];
+		$q='SELECT mood FROM `kiror_moodbadge_users` WHERE uid = ? LIMIT 1;';
+		$mood=$dbc->fetchRow($q,array($uid))['mood'];
 		if(is_int($mood) && array_key_exists($mood,(self::getMoodOptions()))){
 			$m = self::getMoodOptions();
-			return $m[$mood];
+			return $mood;
 		}else{
 			$m=self::getMoodOptions();
-			return $m[0];
+			return 0;
 		}
+	}
+	public static $moodIdCache = array();
+	public static function getMoodId($uid){
+		$uid=intval($uid);
+		if(!array_key_exists($uid,self::$moodIdCache)){
+			self::$moodIdCache[$uid] = self::getMoodId_uncached($uid);
+		}
+		return self::$moodIdCache[$uid];
+	}
+	public static $moodCache = array();
+	public static function getMood($uid){
+		$uid=intval($uid);
+		if(!array_key_exists($uid,self::$moodCache)){
+			$moodid = self::getMoodId($uid);
+			$moods = self::getMoodOptions();
+			self::$moodCache[$uid] = $moods[$moodid];
+		}
+		return self::$moodCache[$uid];
 	}
 	
 	public static function hasMoodDefined($uid){
-		$uid=intval($uid);
-		if (!self::userHasPermission($uid,'forum','moodbadgeset')){
-			return false;
-		}
-		$dbc=XenForo_Application::get('db');
-		$q='SELECT mood FROM `kiror_moodbadge_users` WHERE uid='.$uid.' LIMIT 1;';
-		$mood=$dbc->fetchRow($q)['mood'];
-		if(is_int($mood) && array_key_exists($mood,(self::getMoodOptions()))){
-			return ($mood != 0);
-		}else{
-			return false;
-		}
+		$mood = self::getMoodId($uid);
+		//die(''.$mood);
+		return ($mood != 0);
 	}
 	
 	public static function hasMoodCallback($contents, array $params, XenForo_Template_Abstract $template){
@@ -205,29 +218,7 @@ class moodBadge_sharedStatic
 		}
 	}
 	
-	public static function getUserPermissions($uid){
-		$uid = intval($uid);
-		$userModel = XenForo_Model::create('XenForo_Model_User');
-		$user = $userModel->getUserById($uid);
-		$pci = array_key_exists('permission_combination_id',$user) ? $user['permission_combination_id'] : null;
-		$gpc = array_key_exists('global_permission_cache',$user) ? $user['global_permission_cache'] : null;
-		$permarr = array();
-		if (!$gpc){
-			$permarr = XenForo_Model::create('XenForo_Model_Permission')->rebuildPermissionCombinationById($pci);
-			if(!$permarr){$permarr = array();};
-		}else{
-			if($gpc){
-				$permarr = XenForo_Permission::unserializePermissions($gpc);
-				if(!$permarr){$permarr = array();};
-			}else{
-				$permarr = array();
-			}
-		}
-		return $permarr;
-	}
-	
 	public static function userHasPermission($uid,$permGroupId,$permId){
-		$permissions = self::getUserPermissions($uid);
-		return XenForo_Permission::hasPermission($permissions,'forum','moodbadgeset');
+		return moodBadge_Permission::getInstance()->userHasPermission($uid,$permGroupId,$permId);
 	}
 }
