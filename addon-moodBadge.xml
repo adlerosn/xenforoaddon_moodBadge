@@ -120,56 +120,25 @@
 
 <xen:callback class="moodBadge_sharedStatic" method="getMoodTitleLowerIfDefinedCallback" params="{xen:array 'uid={$visitor.user_id}','aft=</i></div>','pre=<div class="muted">Feeling <i>'}"></xen:callback>]]></replace>
     </modification>
-    <modification template="member_view" modification_key="insertcurrentmoodininfosectionmemberview" description="Inserts current mood in &quot;Information&quot; section of member view, below custom fields" execution_order="10" enabled="1" action="str_replace">
-      <find><![CDATA[<xen:if is="{$customFieldsGrouped.personal}">
-											<xen:foreach loop="$customFieldsGrouped.personal" value="$field">
-												<xen:include template="custom_field_view" />
-											</xen:foreach>
-										</xen:if>]]></find>
-      <replace><![CDATA[<xen:if is="{$customFieldsGrouped.personal}">
-											<xen:foreach loop="$customFieldsGrouped.personal" value="$field">
-												<xen:include template="custom_field_view" />
-											</xen:foreach>
-										</xen:if>
+    <modification template="member_view" modification_key="insertcurrentmoodininfosectionmemberview" description="Inserts current mood in &quot;Information&quot; section of member view, below custom fields" execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#<.+?xen:if.+?customFieldsGrouped\.personal.+?xen:foreach.+?</xen:if>#s]]></find>
+      <replace><![CDATA[$0
 <xen:callback class="moodBadge_sharedStatic" method="renderMoodInProfileInfoCallback" params="{xen:array 'uid={$user.user_id}'}"></xen:callback>]]></replace>
     </modification>
     <modification template="member_card" modification_key="insertcurrentmoodmembercard" description="Inserts current mood in member card" execution_order="10" enabled="1" action="str_replace">
-      <find><![CDATA[</xen:if>
-	</div>
-	
-	<a class="close OverlayCloser"></a>]]></find>
+      <find><![CDATA[<xen:if is="{$canViewOnlineStatus}">]]></find>
       <replace><![CDATA[<xen:callback class="moodBadge_sharedStatic" method="getMoodTitleLowerIfDefinedCallback" params="{xen:array 'uid={$user.user_id}','aft=</i></div>','pre=<div class="muted">{$user.username} is feeling <i>'}"></xen:callback>
-		</xen:if>
-	</div>
-	
-	<a class="close OverlayCloser"></a>]]></replace>
+		$0]]></replace>
     </modification>
-    <modification template="member_view" modification_key="insertcurrentmoodmemberview" description="Inserts current mood in member view" execution_order="10" enabled="1" action="str_replace">
-      <find><![CDATA[</div>
-			
-			<ul class="tabs mainTabs Tabs" data-panes="#ProfilePanes > li" data-history="on">]]></find>
-      <replace><![CDATA[<xen:callback class="moodBadge_sharedStatic" method="getMoodTitleLowerIfDefinedCallback" params="{xen:array 'uid={$user.user_id}','aft=</i></div>','pre=<div class="muted lastActivity" style="border-top: 0px; padding-top: 0px; margin-top: 1px;">{$user.username} is feeling <i>'}"></xen:callback>
-			</div>
-			
-			<ul class="tabs mainTabs Tabs" data-panes="#ProfilePanes > li" data-history="on">]]></replace>
+    <modification template="member_view" modification_key="insertcurrentmoodmemberview" description="Inserts current mood in member view" execution_order="10" enabled="1" action="preg_replace">
+      <find><![CDATA[#(xen:hook.+?member_view_info_block.+?)(</xen:hook>)#s]]></find>
+      <replace><![CDATA[$0
+<xen:callback class="moodBadge_sharedStatic" method="getMoodTitleLowerIfDefinedCallback" params="{xen:array 'uid={$user.user_id}','aft=</i></div>','pre=<div class="muted lastActivity" style="border-top: 0px; padding-top: 0px; margin-top: 1px;">{$user.username} is feeling <i>'}"></xen:callback>]]></replace>
     </modification>
-    <modification template="message_user_info" modification_key="insertcurrentmoodthreadreply" description="Inserts current mood in sidebar from thread reply" execution_order="5000" enabled="1" action="str_replace">
-      <find><![CDATA[</xen:hook>
-			</xen:if>
-			</xen:contentcheck>
-		</div>
-	</xen:if>
-		
-</xen:if>]]></find>
-      <replace><![CDATA[<xen:callback class="moodBadge_sharedStatic" method="renderMoodInThreadViewCallback" params="{xen:array 'uid={$user.user_id}'}"></xen:callback>
-
-			</xen:hook>
-			</xen:if>
-			</xen:contentcheck>
-		</div>
-	</xen:if>
-		
-</xen:if>]]></replace>
+    <modification template="message_user_info" modification_key="insertcurrentmoodthreadreply" description="Inserts current mood in sidebar from thread reply" execution_order="5000" enabled="1" action="preg_replace">
+      <find><![CDATA[#message_user_info_custom_fields.+?</xen:if>.+?</xen:if>.+?</xen:if>#s]]></find>
+      <replace><![CDATA[$0
+<xen:callback class="moodBadge_sharedStatic" method="renderMoodInThreadViewCallback" params="{xen:array 'uid={$user.user_id}'}"></xen:callback>]]></replace>
     </modification>
     <modification template="navigation_visitor_tab" modification_key="insertmoodchanginglinkinaccountmenu" description="Inserts mood changing link in account menu" execution_order="10" enabled="1" action="str_replace">
       <find><![CDATA[<xen:if is="{$canEditProfile}"><li><a href="{xen:link account/personal-details}">{xen:phrase personal_details}</a></li></xen:if>]]></find>
